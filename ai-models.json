@@ -119,7 +119,38 @@
     {"id": "gemini-2.0-flash-lite", "provider": "gemini", "label": "Gemini 2.0 Flash-Lite", "kind": "chat", "status": "retired", "retired_on": "2026-06-01", "replace_with": "gemini-3.5-flash-lite"},
     {"id": "gemini-2.5-flash-preview-05-20", "provider": "gemini", "label": "Gemini 2.5 Flash Preview", "kind": "chat", "status": "retired", "retired_on": "2025-11-18", "replace_with": "gemini-3.8-flash"},
 
+    {"id": "gpt-image-2.5-sunburst", "provider": "openai", "label": "GPT Image 2.5 Sunburst", "kind": "image", "tier": "best", "status": "active"},
+    {"id": "gpt-image-2", "provider": "openai", "label": "GPT Image 2", "kind": "image", "tier": "balanced", "status": "active"},
+    {"id": "gpt-image-2.5-flare", "provider": "openai", "label": "GPT Image 2.5 Flare", "kind": "image", "tier": "fast", "status": "active"},
+    {"id": "gpt-image-1.5", "provider": "openai", "label": "GPT Image 1.5", "kind": "image", "tier": "balanced", "status": "deprecated", "retire_on": "2026-12-01", "replace_with": "gpt-image-2"},
+    {"id": "gpt-image-1", "provider": "openai", "label": "GPT Image 1", "kind": "image", "tier": "balanced", "status": "deprecated", "retire_on": "2026-10-23", "replace_with": "gpt-image-2", "note": "공식 문서에 종료일이 2026-10-23 · 2026-12-01 두 가지로 나옴. 이른 날짜로 적음"},
+    {"id": "gpt-image-1-mini", "provider": "openai", "label": "GPT Image 1 mini", "kind": "image", "tier": "fast", "status": "deprecated", "retire_on": "2026-12-01", "replace_with": "gpt-image-2"},
+    {"id": "dall-e-3", "provider": "openai", "label": "DALL·E 3", "kind": "image", "status": "retired", "retired_on": "2026-05-12", "replace_with": "gpt-image-2"},
+    {"id": "dall-e-2", "provider": "openai", "label": "DALL·E 2", "kind": "image", "status": "retired", "retired_on": "2026-05-12", "replace_with": "gpt-image-2"},
+
+    {"id": "gpt-4o-mini-tts", "provider": "openai", "label": "GPT-4o mini TTS", "kind": "tts", "tier": "best", "status": "active"},
+    {"id": "gpt-4o-mini-tts-2025-12-15", "provider": "openai", "label": "GPT-4o mini TTS (스냅샷)", "kind": "tts", "tier": "best", "status": "active", "alias_of": "gpt-4o-mini-tts"},
+    {"id": "tts-1-hd", "provider": "openai", "label": "TTS-1 HD", "kind": "tts", "tier": "balanced", "status": "legacy", "replace_with": "gpt-4o-mini-tts"},
+    {"id": "tts-1", "provider": "openai", "label": "TTS-1", "kind": "tts", "tier": "fast", "status": "legacy", "replace_with": "gpt-4o-mini-tts"},
+
+    {"id": "gpt-transcribe", "provider": "openai", "label": "GPT Transcribe", "kind": "stt", "tier": "best", "status": "active", "note": "파일 음성 인식"},
+    {"id": "gpt-live-transcribe", "provider": "openai", "label": "GPT Live Transcribe", "kind": "stt", "tier": "balanced", "status": "active", "note": "스트리밍 음성 인식 (Realtime API)"},
+    {"id": "gpt-realtime-whisper", "provider": "openai", "label": "GPT-Realtime-Whisper", "kind": "stt", "tier": "fast", "status": "legacy", "replace_with": "gpt-live-transcribe", "note": "스트리밍 음성 인식 (Realtime API)"},
+    {"id": "gpt-4o-transcribe", "provider": "openai", "label": "GPT-4o Transcribe", "kind": "stt", "tier": "balanced", "status": "deprecated", "retire_on": "2027-02-26", "replace_with": "gpt-transcribe"},
+    {"id": "gpt-4o-mini-transcribe", "provider": "openai", "label": "GPT-4o mini Transcribe", "kind": "stt", "tier": "fast", "status": "deprecated", "retire_on": "2027-02-26", "replace_with": "gpt-transcribe"},
+    {"id": "gpt-4o-transcribe-diarize", "provider": "openai", "label": "GPT-4o Transcribe Diarize", "kind": "stt", "tier": "balanced", "status": "deprecated", "retire_on": "2027-02-26", "replace_with": "gpt-transcribe", "note": "화자 분리 지원. 교체 모델의 화자 분리 지원 여부는 확인 필요"},
+    {"id": "whisper-1", "provider": "openai", "label": "Whisper", "kind": "stt", "tier": "fast", "status": "deprecated", "retire_on": "2027-02-26", "replace_with": "gpt-transcribe", "note": "스트리밍 용도라면 gpt-live-transcribe"},
+
+    {"id": "gpt-realtime-2.1", "provider": "openai", "label": "GPT-Realtime-2.1", "kind": "realtime", "tier": "best", "status": "active"},
+    {"id": "gpt-realtime-2.1-mini", "provider": "openai", "label": "GPT-Realtime-2.1 mini", "kind": "realtime", "tier": "fast", "status": "active"},
+    {"id": "gpt-realtime-2", "provider": "openai", "label": "GPT-Realtime-2", "kind": "realtime", "tier": "best", "status": "legacy", "replace_with": "gpt-realtime-2.1"},
+    {"id": "gpt-realtime", "provider": "openai", "label": "GPT-Realtime", "kind": "realtime", "tier": "balanced", "status": "deprecated", "retire_on": "2027-01-20", "replace_with": "gpt-realtime-2.1"},
+    {"id": "gpt-realtime-mini", "provider": "openai", "label": "GPT-Realtime mini", "kind": "realtime", "tier": "fast", "status": "deprecated", "retire_on": "2027-01-20", "replace_with": "gpt-realtime-2.1-mini"},
+    {"id": "gpt-4o-realtime-preview", "provider": "openai", "label": "GPT-4o Realtime (프리뷰)", "kind": "realtime", "tier": "balanced", "status": "deprecated", "retire_on": "2027-01-20", "replace_with": "gpt-realtime-2.1"},
+    {"id": "gpt-4o-mini-realtime-preview", "provider": "openai", "label": "GPT-4o mini Realtime (프리뷰)", "kind": "realtime", "tier": "fast", "status": "deprecated", "retire_on": "2027-01-20", "replace_with": "gpt-realtime-2.1-mini"},
+
     {"id": "text-embedding-3-small", "provider": "openai", "label": "text-embedding-3-small", "kind": "embedding", "status": "active", "dimensions": 1536},
-    {"id": "text-embedding-3-large", "provider": "openai", "label": "text-embedding-3-large", "kind": "embedding", "status": "active", "dimensions": 3072}
+    {"id": "text-embedding-3-large", "provider": "openai", "label": "text-embedding-3-large", "kind": "embedding", "status": "active", "dimensions": 3072},
+    {"id": "text-embedding-ada-002", "provider": "openai", "label": "text-embedding-ada-002", "kind": "embedding", "status": "legacy", "dimensions": 1536, "replace_with": "text-embedding-3-small"}
   ]
 }
