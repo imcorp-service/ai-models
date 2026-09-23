@@ -1,0 +1,89 @@
+"""ai-models.json 검사: JSON Schema + 스키마로 표현하기 어려운 규칙.
+
+사용: python scripts/validate.py [파일 경로]   (기본: ai-models.json)
+종료 코드 0 = 통과, 1 = 위반.
+"""
+import json
+import re
+import sys
+from datetime import date
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+
+# 과거에 실제로 쓰였던 존재하지 않는 ID 형태 — 다시 들어오지 않게 막는다.
+KNOWN_TYPOS = {"claude-haiku-3-5", "claude-sonnet-4-5-20250514", "claude-haiku-4-20250514"}
+# 4.6 세대 이후 Claude ID 는 날짜가 붙지 않는다 (예: claude-sonnet-4-6-2026xxxx 는 오타).
+DATED_NEW_CLAUDE = re.compile(r"^claude-(opus|sonnet|haiku|fable)-(4-[6-9]|[5-9])(-\d+)?-\d{8}$")
+
+
+DATE_FIELDS = ("retire_not_before", "retire_on", "retired_on")
+
+
+def _bad_date(value) -> bool:
+    try:
+        date.fromisoformat(value)
+        return False
+    except (TypeError, ValueError):
+        return True
+
+
+def rule_errors(data: dict) -> list[str]:
+    errors = []
+    if _bad_date(data["updated"]):
+        errors.append(f"updated 가 실제 날짜가 아님: {data['updated']}")
+    models = data["models"]
+    by_id = {}
+    for m in models:
+        if m["id"] in by_id:
+            errors.append(f"중복 id: {m['id']}")
+        by_id[m["id"]] = m
+
+    for m in models:
+        mid = m["id"]
+        if mid in KNOWN_TYPOS or DATED_NEW_CLAUDE.match(mid):
+            errors.append(f"존재하지 않는 형태의 id: {mid}")
+        for f in DATE_FIELDS:
+            if f in m and _bad_date(m[f]):
+                errors.append(f"{mid}.{f} 가 실제 날짜가 아님: {m[f]}")
+        for ref_field in ("replace_with", "alias_of"):
+            ref = m.get(ref_field)
+            if ref is None:
+                continue
+            target = by_id.get(ref)
+            if target is None:
+                errors.append(f"{mid}.{ref_field} 가 목록에 없는 id 를 가리킴: {ref}")
+            elif target["provider"] != m["provider"]:
+                errors.append(f"{mid}.{ref_field} 가 다른 제공사를 가리킴: {ref}")
+            elif ref_field == "replace_with" and target["status"] == "retired":
+                errors.append(f"{mid}.replace_with 가 은퇴 모델을 가리킴: {ref}")
+            elif ref_field == "replace_with" and target["kind"] != m["kind"]:
+                errors.append(f"{mid}.replace_with 의 kind 가 다름: {ref}")
+            elif ref_field == "replace_with" and "alias_of" in target:
+                errors.append(f"{mid}.replace_with 가 별칭(선택지에 안 나옴)을 가리킴: {ref} → {target['alias_of']} 로")
+        if m.get("kind") == "embedding" and (m.get("requires") or m.get("tier")):
+            errors.append(f"{mid}: embedding 에는 tier·requires 를 쓰지 않는다")
+    return errors
+
+
+def validate(path: Path) -> list[str]:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        return [f"읽기 실패: {e}"]
+    import jsonschema  # CI 에서 설치. 규칙 검사만 필요하면 rule_errors() 를 직접 쓴다.
+    schema = json.loads((ROOT / "schema.json").read_text(encoding="utf-8"))
+    schema_errors = [f"스키마: {'/'.join(map(str, e.absolute_path))}: {e.message}"
+                     for e in jsonschema.Draft202012Validator(schema).iter_errors(data)]
+    if schema_errors:
+        return schema_errors  # 구조가 틀리면 규칙 검사가 KeyError 로 죽으므로 여기서 멈춘다
+    return rule_errors(data)
+
+
+if __name__ == "__main__":
+    target = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "ai-models.json"
+    errs = validate(target)
+    for e in errs:
+        print(f"ERROR {e}")
+    print("OK" if not errs else f"{len(errs)}건 위반")
+    sys.exit(1 if errs else 0)
