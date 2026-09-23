@@ -149,8 +149,44 @@
     {"id": "gpt-4o-realtime-preview", "provider": "openai", "label": "GPT-4o Realtime (프리뷰)", "kind": "realtime", "tier": "balanced", "status": "deprecated", "retire_on": "2027-01-20", "replace_with": "gpt-realtime-2.1"},
     {"id": "gpt-4o-mini-realtime-preview", "provider": "openai", "label": "GPT-4o mini Realtime (프리뷰)", "kind": "realtime", "tier": "fast", "status": "deprecated", "retire_on": "2027-01-20", "replace_with": "gpt-realtime-2.1-mini"},
 
+    {"id": "gemini-3-pro-image", "provider": "gemini", "label": "Nano Banana Pro (Gemini 3 Pro Image)", "kind": "image", "tier": "best", "status": "active"},
+    {"id": "gemini-3.1-flash-image", "provider": "gemini", "label": "Nano Banana 2 (Gemini 3.1 Flash Image)", "kind": "image", "tier": "balanced", "status": "active"},
+    {"id": "gemini-3.1-flash-lite-image", "provider": "gemini", "label": "Nano Banana 2 Lite (Gemini 3.1 Flash-Lite Image)", "kind": "image", "tier": "fast", "status": "active"},
+    {"id": "gemini-2.5-flash-image", "provider": "gemini", "label": "Nano Banana (Gemini 2.5 Flash Image)", "kind": "image", "tier": "fast", "status": "legacy", "replace_with": "gemini-3.1-flash-lite-image", "note": "종료일 2026-10-02 공지 가능성 있음(확인 필요)"},
+    {"id": "gemini-3-pro-image-preview", "provider": "gemini", "label": "Gemini 3 Pro Image (프리뷰)", "kind": "image", "status": "retired", "retired_on": "2026-06-25", "replace_with": "gemini-3-pro-image"},
+    {"id": "gemini-3.1-flash-image-preview", "provider": "gemini", "label": "Gemini 3.1 Flash Image (프리뷰)", "kind": "image", "status": "retired", "retired_on": "2026-06-25", "replace_with": "gemini-3.1-flash-image"},
+    {"id": "gemini-2.5-flash-image-preview", "provider": "gemini", "label": "Nano Banana (프리뷰)", "kind": "image", "status": "retired", "retired_on": "2026-01-15", "replace_with": "gemini-3.1-flash-lite-image"},
+    {"id": "imagen-4.0-ultra-generate-001", "provider": "gemini", "label": "Imagen 4 Ultra", "kind": "image", "status": "retired", "retired_on": "2026-08-17", "replace_with": "gemini-3-pro-image"},
+    {"id": "imagen-4.0-generate-001", "provider": "gemini", "label": "Imagen 4", "kind": "image", "status": "retired", "retired_on": "2026-08-17", "replace_with": "gemini-3.1-flash-image"},
+    {"id": "imagen-4.0-fast-generate-001", "provider": "gemini", "label": "Imagen 4 Fast", "kind": "image", "status": "retired", "retired_on": "2026-08-17", "replace_with": "gemini-3.1-flash-lite-image"},
+
+    {"id": "veo-3.1-generate-preview", "provider": "gemini", "label": "Veo 3.1 (프리뷰)", "kind": "video", "tier": "best", "status": "preview"},
+    {"id": "veo-3.1-fast-generate-preview", "provider": "gemini", "label": "Veo 3.1 Fast (프리뷰)", "kind": "video", "tier": "balanced", "status": "preview"},
+    {"id": "veo-3.1-lite-generate-preview", "provider": "gemini", "label": "Veo 3.1 Lite (프리뷰)", "kind": "video", "tier": "fast", "status": "preview"},
+    {"id": "veo-3.0-generate-001", "provider": "gemini", "label": "Veo 3", "kind": "video", "status": "retired", "retired_on": "2026-06-30", "replace_with": "veo-3.1-generate-preview"},
+    {"id": "veo-3.0-fast-generate-001", "provider": "gemini", "label": "Veo 3 Fast", "kind": "video", "status": "retired", "retired_on": "2026-06-30", "replace_with": "veo-3.1-fast-generate-preview"},
+    {"id": "veo-2.0-generate-001", "provider": "gemini", "label": "Veo 2", "kind": "video", "status": "retired", "retired_on": "2026-06-30", "replace_with": "veo-3.1-generate-preview"},
+
+    {"id": "gemini-3.1-flash-tts-preview", "provider": "gemini", "label": "Gemini 3.1 Flash TTS (프리뷰)", "kind": "tts", "tier": "fast", "status": "preview"},
+    {"id": "gemini-2.5-pro-preview-tts", "provider": "gemini", "label": "Gemini 2.5 Pro TTS (프리뷰)", "kind": "tts", "tier": "best", "status": "legacy", "replace_with": "gemini-3.1-flash-tts-preview", "note": "Pro 급 후속 TTS 모델은 확인되지 않음"},
+    {"id": "gemini-2.5-flash-preview-tts", "provider": "gemini", "label": "Gemini 2.5 Flash TTS (프리뷰)", "kind": "tts", "tier": "fast", "status": "legacy", "replace_with": "gemini-3.1-flash-tts-preview"},
+
+    {"id": "gemini-3.5-transcribe", "provider": "gemini", "label": "Gemini 3.5 Transcribe", "kind": "stt", "tier": "balanced", "status": "active", "note": "파일 음성 인식"},
+    {"id": "gemini-3.5-transcribe-live", "provider": "gemini", "label": "Gemini 3.5 Transcribe Live", "kind": "stt", "tier": "fast", "status": "active", "note": "스트리밍 음성 인식 (Live API)"},
+
+    {"id": "gemini-3.8-live-extended-thinking", "provider": "gemini", "label": "Gemini 3.8 Live Extended Thinking", "kind": "realtime", "tier": "best", "status": "active"},
+    {"id": "gemini-3.8-live", "provider": "gemini", "label": "Gemini 3.8 Live", "kind": "realtime", "tier": "balanced", "status": "active"},
+    {"id": "gemini-3.5-live-translate-preview", "provider": "gemini", "label": "Gemini 3.5 Live Translate (프리뷰)", "kind": "realtime", "tier": "fast", "status": "preview", "note": "실시간 음성 번역"},
+    {"id": "gemini-3.1-flash-live-preview", "provider": "gemini", "label": "Gemini 3.1 Flash Live (프리뷰)", "kind": "realtime", "tier": "fast", "status": "legacy", "replace_with": "gemini-3.8-live"},
+    {"id": "gemini-2.5-flash-native-audio-preview-12-2025", "provider": "gemini", "label": "Gemini 2.5 Flash Native Audio (프리뷰)", "kind": "realtime", "tier": "fast", "status": "legacy", "replace_with": "gemini-3.8-live"},
+    {"id": "gemini-2.0-flash-live-001", "provider": "gemini", "label": "Gemini 2.0 Flash Live", "kind": "realtime", "status": "retired", "retired_on": "2025-12-09", "replace_with": "gemini-3.8-live"},
+    {"id": "gemini-live-2.5-flash-preview", "provider": "gemini", "label": "Gemini 2.5 Flash Live (프리뷰)", "kind": "realtime", "status": "retired", "retired_on": "2025-12-09", "replace_with": "gemini-3.8-live"},
+
     {"id": "text-embedding-3-small", "provider": "openai", "label": "text-embedding-3-small", "kind": "embedding", "status": "active", "dimensions": 1536},
     {"id": "text-embedding-3-large", "provider": "openai", "label": "text-embedding-3-large", "kind": "embedding", "status": "active", "dimensions": 3072},
-    {"id": "text-embedding-ada-002", "provider": "openai", "label": "text-embedding-ada-002", "kind": "embedding", "status": "legacy", "dimensions": 1536, "replace_with": "text-embedding-3-small"}
+    {"id": "text-embedding-ada-002", "provider": "openai", "label": "text-embedding-ada-002", "kind": "embedding", "status": "legacy", "dimensions": 1536, "replace_with": "text-embedding-3-small"},
+    {"id": "gemini-embedding-2", "provider": "gemini", "label": "Gemini Embedding 2", "kind": "embedding", "status": "active", "dimensions": 3072, "note": "텍스트·이미지 등 멀티모달. gemini-embedding-001 과 벡터 호환 안 됨"},
+    {"id": "gemini-embedding-001", "provider": "gemini", "label": "Gemini Embedding", "kind": "embedding", "status": "active", "dimensions": 3072, "note": "텍스트 전용"},
+    {"id": "text-embedding-004", "provider": "gemini", "label": "Text Embedding 004", "kind": "embedding", "status": "retired", "dimensions": 768, "retired_on": "2026-01-14", "replace_with": "gemini-embedding-001"}
   ]
 }
