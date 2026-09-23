@@ -21,7 +21,7 @@
         "alias_of": {"type": "string"},
         "provider": {"enum": ["anthropic", "openai", "gemini"]},
         "label": {"type": "string", "minLength": 1},
-        "kind": {"enum": ["chat", "embedding"]},
+        "kind": {"enum": ["chat", "embedding", "image", "video", "tts", "stt", "realtime"]},
         "tier": {"enum": ["fast", "balanced", "best"]},
         "status": {"enum": ["active", "legacy", "deprecated", "preview", "retired"]},
         "capabilities": {"type": "array", "uniqueItems": true, "items": {"enum": ["text", "vision", "tools"]}},
@@ -38,6 +38,8 @@
         {"if": {"properties": {"status": {"const": "retired"}}}, "then": {"required": ["retired_on", "replace_with"]}},
         {"if": {"properties": {"status": {"const": "deprecated"}}}, "then": {"required": ["retire_on", "replace_with"]}},
         {"if": {"properties": {"kind": {"const": "embedding"}}}, "then": {"required": ["dimensions"]}},
+        {"if": {"properties": {"kind": {"enum": ["image", "video", "tts", "stt", "realtime"]}, "status": {"not": {"const": "retired"}}}, "required": ["kind"]},
+         "then": {"required": ["tier"]}},
         {"if": {"properties": {"kind": {"const": "chat"}, "status": {"not": {"const": "retired"}}}, "required": ["kind"]},
          "then": {"required": ["tier", "capabilities", "requires"]}}
       ]

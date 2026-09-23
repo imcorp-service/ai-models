@@ -26,6 +26,7 @@ def with_model(**fields):
     m = {"id": "claude-x", "provider": "anthropic", "label": "X", "kind": "chat", "tier": "fast",
          "status": "active", "capabilities": ["text"], "requires": []}
     m.update(fields)
+    m = {k: v for k, v in m.items() if v is not None}
     data["models"].append(m)
     return data
 
@@ -69,6 +70,32 @@ class ValidateTest(unittest.TestCase):
 
     def test_unknown_flag(self):
         self.assertTrue(any("스키마" in e for e in run(with_model(requires=["no_temperature"]))))
+
+    def test_unknown_kind(self):
+        self.assertTrue(any("스키마" in e for e in run(with_model(kind="music"))))
+
+    def test_media_requires_tier(self):
+        errs = run(with_model(id="gpt-image-x", provider="openai", kind="image",
+                              tier=None, capabilities=None, requires=None))
+        self.assertTrue(any("tier" in e for e in errs))
+
+    def test_media_passes(self):
+        m = {"id": "gpt-image-x", "provider": "openai", "label": "X", "kind": "image", "tier": "fast", "status": "active"}
+        data = copy.deepcopy(BASE)
+        data["models"].append(m)
+        self.assertEqual(run(data), [])
+
+    def test_media_no_chat_fields(self):
+        errs = run(with_model(id="gpt-tts-x", provider="openai", kind="tts"))
+        self.assertTrue(any("chat 에만" in e for e in errs))
+
+    def test_dimensions_only_embedding(self):
+        self.assertTrue(any("embedding 에만" in e for e in run(with_model(dimensions=8))))
+
+    def test_replace_with_other_kind(self):
+        errs = run(with_model(id="gpt-image-x", provider="openai", kind="image", tier="fast",
+                              capabilities=None, requires=None, replace_with="gpt-4o"))
+        self.assertTrue(any("kind 가 다름" in e for e in errs))
 
     def test_bad_json(self):
         with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:

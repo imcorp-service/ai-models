@@ -61,8 +61,13 @@ def rule_errors(data: dict) -> list[str]:
                 errors.append(f"{mid}.replace_with 의 kind 가 다름: {ref}")
             elif ref_field == "replace_with" and "alias_of" in target:
                 errors.append(f"{mid}.replace_with 가 별칭(선택지에 안 나옴)을 가리킴: {ref} → {target['alias_of']} 로")
-        if m.get("kind") == "embedding" and (m.get("requires") or m.get("tier")):
+        kind = m.get("kind")
+        if kind == "embedding" and (m.get("requires") or m.get("tier")):
             errors.append(f"{mid}: embedding 에는 tier·requires 를 쓰지 않는다")
+        if kind != "chat" and ("requires" in m or "capabilities" in m):
+            errors.append(f"{mid}: capabilities·requires 는 chat 에만 쓴다 ({kind})")
+        if kind != "embedding" and "dimensions" in m:
+            errors.append(f"{mid}: dimensions 는 embedding 에만 쓴다 ({kind})")
     return errors
 
 

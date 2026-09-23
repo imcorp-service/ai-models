@@ -16,11 +16,11 @@ AI 모델 목록 공용 저장소입니다. 서비스 관리 화면이 이 목�
 |---|---|
 | `id` | 제공사 API에 넣는 모델 ID 그대로 |
 | `provider` | `anthropic` · `openai` · `gemini` |
-| `kind` | `chat` (대화·생성) · `embedding` (임베딩) |
+| `kind` | `chat` (대화·생성) · `embedding` (임베딩) · `image` (이미지 생성) · `video` (영상 생성) · `tts` (음성 합성) · `stt` (음성 인식) · `realtime` (실시간 음성 대화) |
 | `status` | `active` 권장 · `legacy` 동작하지만 교체 권장 · `deprecated` 종료일 공지됨 · `preview` 프리뷰 · `retired` 호출 불가 |
 | `tier` | `fast` · `balanced` · `best` (속도·비용 대 성능 구분) |
-| `capabilities` | `text` · `vision` · `tools` |
-| `requires` | 이 모델을 쓰려면 호출 코드가 지켜야 하는 요청 형식 (아래 표) |
+| `capabilities` | `text` · `vision` · `tools` (`chat`만) |
+| `requires` | 이 모델을 쓰려면 호출 코드가 지켜야 하는 요청 형식 (아래 표, `chat`만) |
 | `retire_not_before` | 제공사가 약속한 "이 날짜 전에는 은퇴하지 않음" |
 | `retire_on` | 공지된 종료 예정일 (`deprecated`) |
 | `retired_on` | 실제 종료일 (`retired`) |
@@ -28,6 +28,8 @@ AI 모델 목록 공용 저장소입니다. 서비스 관리 화면이 이 목�
 | `alias_of` | 같은 모델의 다른 이름 (예: 날짜 붙은 스냅샷 ID). 선택지에는 대표 ID만 보여줍니다 |
 | `dimensions` | 임베딩 차원 (`embedding`만) |
 | `note` | 접근 제한 등 참고 사항 |
+
+`tier`는 `chat`과 이미지·영상·음성 모델(`image` · `video` · `tts` · `stt` · `realtime`)에 씁니다. Anthropic은 이미지·음성 모델을 제공하지 않아 해당 종류는 OpenAI · Gemini만 있습니다.
 
 `retired` 항목은 선택지에 쓰지 않습니다. 이미 저장된 값이 은퇴했는지 알려주고 교체 대상을 안내하는 용도로 남겨 둡니다.
 
@@ -54,14 +56,15 @@ AI 모델 목록 공용 저장소입니다. 서비스 관리 화면이 이 목�
 3. **걸러서 보여줍니다.** `kind == "chat"`, 서비스가 허용한 제공사, `retired` 아님, `alias_of` 없음, 필요한 `capabilities` 보유. `requires`가 맞지 않는 모델은 숨기지 않고 "코드 업데이트 필요"로 비활성 표시합니다.
 4. **저장 전에 실제로 호출해 검증합니다.** 서비스가 실제로 쓰는 호출 함수로 짧은 요청을 1회 보내 성공해야 저장합니다. 목록은 선택지를 줄 뿐, 동작을 보장하지 않습니다.
 5. **현재 저장값은 목록에 없어도 그대로 보여줍니다.** "목록에 없음" 또는 "은퇴됨 — 교체 권장: …"으로 표시하고, 다른 설정을 저장할 때 모델 값이 바뀌지 않게 합니다.
-6. **임베딩 모델은 선택지로 쓰지 않습니다.** 차원이 다른 모델로 바꾸면 기존 벡터 데이터와 맞지 않습니다. 임베딩 교체는 재색인과 함께 따로 진행합니다.
+6. **이미지·영상·음성 모델은 종류별로 따로 고릅니다.** 대화 모델 선택지와 섞지 않고 `kind`가 같은 모델만 보여줍니다(예: 이미지 생성 설정에는 `kind == "image"`). `capabilities` · `requires` 검사는 없고 나머지 규칙(제공사·`retired`·`alias_of` 제외, 저장 전 실제 호출 검증)은 같습니다. 모델마다 지원하는 크기·목소리·형식이 다르니 저장 전 검증에서 실제로 쓰는 옵션으로 호출해 봅니다.
+7. **임베딩 모델은 선택지로 쓰지 않습니다.** 차원이 다른 모델로 바꾸면 기존 벡터 데이터와 맞지 않습니다. 임베딩 교체는 재색인과 함께 따로 진행합니다.
 
 반영 시간: 이 저장소에 머지된 뒤 GitHub raw 캐시(최대 약 5분) + 서비스 캐시(1시간) 안에 반영됩니다.
 
 ## 목록을 고치는 법
 
 1. `ai-models.json`을 수정하는 PR을 엽니다. 새 모델 추가, `status` · 날짜 · `replace_with` 갱신, 필요한 `requires` 플래그를 적습니다.
-2. CI(`scripts/validate.py`)가 스키마와 규칙을 검사합니다: ID 중복, 존재하지 않는 형태의 ID, `replace_with` · `alias_of`가 목록에 있고 같은 제공사인지, 은퇴 모델에 날짜와 교체 대상이 있는지.
+2. CI(`scripts/validate.py`)가 스키마와 규칙을 검사합니다: ID 중복, 존재하지 않는 형태의 ID, `replace_with` · `alias_of`가 목록에 있고 같은 제공사인지, 은퇴 모델에 날짜와 교체 대상이 있는지, `replace_with`가 같은 종류(`kind`)인지, 종류별 필드(`capabilities` · `requires`는 `chat`, `dimensions`는 `embedding`)만 쓰는지.
 3. 리뷰 후 `main`에 머지합니다.
 
 `main`은 보호되어 있습니다: 직접 푸시·강제 푸시·삭제 불가, PR과 CI(`validate`) 통과 필수, 스쿼시 머지만 허용. 외부 기여자의 PR은 관리자가 승인해야 CI가 실행됩니다.

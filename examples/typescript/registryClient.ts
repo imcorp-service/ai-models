@@ -3,7 +3,7 @@
 // 서버에서 조회(브라우저 X), 3초 제한, 1시간 캐시, 실패 시 마지막 캐시 → FALLBACK_MODELS.
 
 export interface Model {
-  id: string; provider: string; label: string; kind: "chat" | "embedding"; status: string;
+  id: string; provider: string; label: string; kind: "chat" | "embedding" | "image" | "video" | "tts" | "stt" | "realtime"; status: string;
   alias_of?: string; tier?: string; capabilities?: string[]; requires?: string[];
   retire_not_before?: string; retire_on?: string; retired_on?: string; replace_with?: string; note?: string;
 }
