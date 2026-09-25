@@ -29,7 +29,10 @@ public class RegistryClient {
     public record Option(JsonNode model, boolean selectable, String reason) {
         public String id() { return model.path("id").asText(); }
     }
-    public record Loaded(Registry registry, String source) {}   // source: registry | cache | fallback
+    public record Loaded(Registry registry, String source) {   // source: registry | cache | fallback
+        /** 예전 예제와의 호환: loadModels().models() */
+        public List<JsonNode> models() { return registry.models(); }
+    }
     public record Registry(List<JsonNode> models, JsonNode recommended) {}
     public record Price(double input, Double output) {}   // USD / 1M 토큰, 표준 조건. output 은 임베딩이면 null
     private static final String PRICE_UNIT = "usd_per_mtok";
@@ -86,6 +89,9 @@ public class RegistryClient {
                     : new Loaded(new Registry(fallback(), MissingNode.getInstance()), "fallback");
         }
     }
+
+    /** 예전 예제와의 호환. 새 코드는 loadRegistry() 를 쓴다. */
+    public Loaded loadModels() { return loadRegistry(); }
 
     public record Options(List<Option> options, String source) {}
 

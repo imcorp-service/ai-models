@@ -63,6 +63,12 @@ public class Conformance {
         System.exit(failures.isEmpty() ? 0 : 1);
     }
 
+    // 호출하지 않는다 — 예전 예제의 공개 API(loadModels().models())가 계속 컴파일되는지 확인하는 용도.
+    @SuppressWarnings("unused")
+    private static List<JsonNode> legacyApiStillCompiles(RegistryClient client) {
+        return client.loadModels().models();
+    }
+
     private static void check(List<String> failures, String name, String got, String want) {
         if (!got.equals(want)) failures.add(name + ": got=" + got + " want=" + want);
     }
