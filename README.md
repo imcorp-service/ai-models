@@ -28,8 +28,18 @@ AI 모델 목록 공용 저장소입니다. 서비스 관리 화면이 이 목�
 | `alias_of` | 같은 모델의 다른 이름 (예: 날짜 붙은 스냅샷 ID). 선택지에는 대표 ID만 보여줍니다 |
 | `dimensions` | 임베딩 차원 (`embedding`만) |
 | `note` | 접근 제한 등 참고 사항 |
+| `pricing` | 표준 조건 단가 이력. 항목마다 `from`(적용 시작일), `unit`(`usd_per_mtok` = USD / 1M 토큰), `input`, `output`(chat), `source`(공식 가격표 주소). 배치·캐시·장문맥 할증은 넣지 않습니다 |
+| `pricing_verified` | 사람이 공식 가격표와 대조한 날 |
 
-`retired` 항목은 선택지에 쓰지 않습니다. 이미 저장된 값이 은퇴했는지 알려주고 교체 대상을 안내하는 용도로 남겨 둡니다.
+`retired` 항목은 선택지에 쓰지 않습니다. 이미 저장된 값이 은퇴했는지 알려주고 교체 대상을 안내하는 용도로 남겨 둡니다. 은퇴하지 않은 chat·embedding 모델은 모두 `pricing` 을 가집니다(별칭은 원본 단가를 씁니다).
+
+### 권장 기본 모델 (`recommended`)
+
+제공사·등급(`fast` · `balanced` · `best`)별 권장 모델입니다. 서비스는 **저장된 모델이 없을 때만** 이 값으로 기본값을 고릅니다(저장값은 바꾸지 않습니다).
+
+- 고르는 순서: 권장값 → 같은 제공사·같은 등급의 `active` 모델(**목록에 적힌 순서가 우선순위**) → 서비스 내장 기본값. 모든 후보에 같은 검사(선택 가능, `active`·`legacy`)를 하고, 없으면 기본값을 비웁니다.
+- 권장값은 `active` 모델만 가리킵니다. 등급에 `active` 모델이 없으면 비워 둡니다.
+- 예제의 `pick_default` / `pickDefault` 가 이 규칙을 구현합니다.
 
 ### 요청 형식 플래그 (`requires`)
 
@@ -49,7 +59,9 @@ AI 모델 목록 공용 저장소입니다. 서비스 관리 화면이 이 목�
 
 [`examples/`](examples)에 Python · Java · TypeScript 예제가 있습니다. 서비스 저장소에 복사해 쓰고, 복사한 뒤에는 그 서비스의 코드로 관리합니다.
 
-새 서비스에 적용할 때의 체크리스트와 실제 적용에서 드러난 함정은 [`docs/INTEGRATION.md`](docs/INTEGRATION.md)에 있습니다.
+새 서비스에 적용할 때의 체크리스트와 실제 적용에서 드러난 함정은 [`docs/INTEGRATION.md`](docs/INTEGRATION.md)에 있습니다. 목록이 어떻게 바뀌어도 서비스가 깨지지 않도록 지키는 약속은 [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md)에 있습니다. 예제가 지켜야 할 동작은 [`conformance/cases.json`](conformance/cases.json)에 있고, 서비스는 이 파일을 함께 복사해 테스트합니다.
+
+매주 월요일 정기 점검(`.github/workflows/audit.yml`)이 은퇴일 경과·은퇴 임박·단가 재확인(90일)·권장값 상태를 확인해 이슈로 알립니다.
 
 1. **서버에서 조회합니다.** 브라우저가 직접 가져가지 않습니다. 타임아웃 3초, 결과는 1시간 캐시합니다.
 2. **실패해도 화면을 막지 않습니다.** 조회 실패 → 마지막 캐시 → 서비스에 내장한 최소 목록 순서로 씁니다. 어느 출처를 썼는지(`registry` · `cache` · `fallback`)를 함께 표시합니다. 조회 주소는 환경변수 `AI_MODELS_URL`로 바꿀 수 있습니다(폐쇄망 등).
@@ -63,7 +75,10 @@ AI 모델 목록 공용 저장소입니다. 서비스 관리 화면이 이 목�
 ## 목록을 고치는 법
 
 1. `ai-models.json`을 수정하는 PR을 엽니다. 새 모델 추가, `status` · 날짜 · `replace_with` 갱신, 필요한 `requires` 플래그를 적습니다.
-2. CI(`scripts/validate.py`)가 스키마와 규칙을 검사합니다: ID 중복, 존재하지 않는 형태의 ID, `replace_with` · `alias_of`가 목록에 있고 같은 제공사인지, 은퇴 모델에 날짜와 교체 대상이 있는지.
+   - 단가를 바꿀 때는 공식 가격표 주소(`source`)를 반드시 달고 `pricing_verified` 를 대조한 날로 고칩니다.
+   - 예정된 가격 변경은 기존 항목을 고치지 말고 새 `from` 항목을 추가합니다.
+   - 제공사를 추가할 때는 `schema.json` 의 provider enum 두 곳(모델 · `recommended`)을 함께 고칩니다.
+2. CI(`scripts/validate.py`)가 스키마와 규칙을 검사합니다: ID 중복, 존재하지 않는 형태의 ID, `replace_with` · `alias_of`가 목록에 있고 같은 제공사인지, 은퇴 모델에 날짜와 교체 대상이 있는지, 단가 누락·순서·범위, 별칭 규칙, 권장값이 같은 제공사·등급의 `active` 모델인지. 적합성 케이스는 Python·Java 예제로 모두 통과해야 합니다.
 3. 리뷰 후 `main`에 머지합니다.
 
 `main`은 보호되어 있습니다: 직접 푸시·강제 푸시·삭제 불가, PR과 CI(`validate`) 통과 필수, 스쿼시 머지만 허용. 외부 기여자의 PR은 관리자가 승인해야 CI가 실행됩니다.
@@ -74,6 +89,11 @@ AI 모델 목록 공용 저장소입니다. 서비스 관리 화면이 이 목�
 pip install "jsonschema==4.24.0"
 python scripts/validate.py
 python -m unittest discover -s tests -q
+python scripts/audit.py            # 정기 점검과 같은 검사(발견 사항만 출력)
+
+# Java 예제 적합성(Jackson 2.17.2 jar 3개를 lib/ 에 받은 뒤, 해시는 tests/java/jackson.sha256)
+javac -encoding UTF-8 -d out -cp "lib/*" examples/java/RegistryClient.java tests/java/Conformance.java
+java -cp "out:lib/*" Conformance conformance/cases.json     # Windows 는 "out;lib/*"
 ```
 
 새로운 요청 형식 차이가 생기면 플래그를 `schema.json`, `scripts/validate.py`의 검사, 이 README 표에 함께 추가합니다.
