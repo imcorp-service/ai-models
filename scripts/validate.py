@@ -18,6 +18,8 @@ DATED_NEW_CLAUDE = re.compile(r"^claude-(opus|sonnet|haiku|fable)-(4-[6-9]|[5-9]
 
 
 DATE_FIELDS = ("retire_not_before", "retire_on", "retired_on")
+# 단가를 공식 문서에서 확인할 수 없어 일시적으로 빼 두는 모델. 추가할 때는 이유를 주석으로 남긴다.
+PRICING_EXEMPT: set[str] = set()
 
 
 def _bad_date(value) -> bool:
@@ -85,6 +87,9 @@ def rule_errors(data: dict) -> list[str]:
                 errors.append(f"{mid}.pricing 은 from 오름차순이고 같은 날이 두 번 나오면 안 된다: {froms}")
             if m["kind"] == "chat" and any("output" not in p for p in pricing):
                 errors.append(f"{mid}.pricing: chat 모델은 output 단가가 필요하다")
+        if (m["status"] != "retired" and m.get("alias_of") is None
+                and m["kind"] in ("chat", "embedding") and pricing is None and mid not in PRICING_EXEMPT):
+            errors.append(f"{mid}: 은퇴하지 않은 모델은 단가(pricing)가 필요하다")
     return errors
 
 

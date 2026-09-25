@@ -137,6 +137,14 @@ class ValidateTest(unittest.TestCase):
             data["models"][-1].pop(k, None)
         self.assertTrue(any("kind" in e and "alias_of" in e for e in run(data)))
 
+    def test_selectable_model_needs_pricing(self):
+        errs = run(with_model())   # with_model 기본값은 단가 없는 active chat
+        self.assertTrue(any("claude-x" in e and "단가" in e for e in errs))
+
+    def test_retired_model_needs_no_pricing(self):
+        errs = run(with_model(status="retired", retired_on="2026-01-01", replace_with="claude-sonnet-5"))
+        self.assertFalse(any("단가" in e for e in errs))
+
 
 if __name__ == "__main__":
     unittest.main()
