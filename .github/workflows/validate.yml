@@ -23,3 +23,22 @@ jobs:
       - run: pip install "jsonschema==4.24.0"
       - run: python scripts/validate.py
       - run: python -m unittest discover -s tests -q
+
+  conformance-java:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - run: java -version
+      - name: Jackson 내려받기(해시 고정)
+        run: |
+          mkdir -p lib && cd lib
+          base=https://repo1.maven.org/maven2/com/fasterxml/jackson/core
+          for a in jackson-core jackson-databind jackson-annotations; do
+            curl -fsSLO "$base/$a/2.17.2/$a-2.17.2.jar"
+          done
+          sha256sum -c ../tests/java/jackson.sha256
+      - run: javac -encoding UTF-8 -d out -cp "lib/*" examples/java/RegistryClient.java tests/java/Conformance.java
+      - run: java -cp "out:lib/*" Conformance conformance/cases.json
