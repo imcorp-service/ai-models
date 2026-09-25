@@ -18,6 +18,8 @@ DATED_NEW_CLAUDE = re.compile(r"^claude-(opus|sonnet|haiku|fable)-(4-[6-9]|[5-9]
 
 
 DATE_FIELDS = ("retire_not_before", "retire_on", "retired_on")
+# 단가를 공식 문서에서 확인할 수 없어 일시적으로 빼 두는 모델. 추가할 때는 이유를 주석으로 남긴다.
+PRICING_EXEMPT: set[str] = set()
 
 
 def _bad_date(value) -> bool:
@@ -63,6 +65,45 @@ def rule_errors(data: dict) -> list[str]:
                 errors.append(f"{mid}.replace_with 가 별칭(선택지에 안 나옴)을 가리킴: {ref} → {target['alias_of']} 로")
         if m.get("kind") == "embedding" and (m.get("requires") or m.get("tier")):
             errors.append(f"{mid}: embedding 에는 tier·requires 를 쓰지 않는다")
+        pricing = m.get("pricing")
+        if m.get("alias_of") is not None:
+            if pricing is not None or "pricing_verified" in m:
+                errors.append(f"{mid}: 별칭은 pricing·pricing_verified 를 갖지 않는다(원본 단가를 쓴다)")
+            target = by_id.get(m["alias_of"])
+            if target is not None and "alias_of" in target:
+                errors.append(f"{mid}.alias_of 가 별칭을 가리킴(다단계·자기 참조 금지): {m['alias_of']}")
+            elif target is not None and target["kind"] != m["kind"]:
+                errors.append(f"{mid}.alias_of 의 kind 가 다름: {m['alias_of']}")
+        if pricing is not None:
+            if "pricing_verified" not in m:
+                errors.append(f"{mid}: pricing 이 있으면 pricing_verified 가 필요하다")
+            elif _bad_date(m["pricing_verified"]):
+                errors.append(f"{mid}.pricing_verified 가 실제 날짜가 아님: {m['pricing_verified']}")
+            froms = [p["from"] for p in pricing]
+            for f in froms:
+                if _bad_date(f):
+                    errors.append(f"{mid}.pricing.from 이 실제 날짜가 아님: {f}")
+            if any(a >= b for a, b in zip(froms, froms[1:])):
+                errors.append(f"{mid}.pricing 은 from 오름차순이고 같은 날이 두 번 나오면 안 된다: {froms}")
+            if m["kind"] == "chat" and any("output" not in p for p in pricing):
+                errors.append(f"{mid}.pricing: chat 모델은 output 단가가 필요하다")
+        if (m["status"] != "retired" and m.get("alias_of") is None
+                and m["kind"] in ("chat", "embedding") and pricing is None and mid not in PRICING_EXEMPT):
+            errors.append(f"{mid}: 은퇴하지 않은 모델은 단가(pricing)가 필요하다")
+    for prov, tiers in (data.get("recommended") or {}).items():
+        for tier, rid in tiers.items():
+            t = by_id.get(rid)
+            where = f"recommended.{prov}.{tier}"
+            if t is None:
+                errors.append(f"{where} 가 목록에 없는 id 를 가리킴: {rid}")
+            elif t["provider"] != prov:
+                errors.append(f"{where} 가 다른 제공사 모델을 가리킴: {rid}")
+            elif "alias_of" in t:
+                errors.append(f"{where} 가 별칭을 가리킴: {rid}")
+            elif t["kind"] != "chat" or t.get("tier") != tier:
+                errors.append(f"{where} 의 kind·tier 가 맞지 않음: {rid} ({t['kind']}/{t.get('tier')})")
+            elif t["status"] != "active":
+                errors.append(f"{where} 는 active 모델만 가능: {rid} ({t['status']})")
     return errors
 
 
