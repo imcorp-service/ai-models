@@ -78,6 +78,65 @@ class ValidateTest(unittest.TestCase):
         finally:
             Path(f.name).unlink()
 
+    P = {"from": "2026-09-25", "unit": "usd_per_mtok", "input": 1, "output": 5,
+         "source": "https://example.com/pricing"}
+
+    def test_pricing_ok(self):
+        self.assertEqual(run(with_model(pricing=[self.P], pricing_verified="2026-09-25")), [])
+
+    def test_pricing_unknown_unit(self):
+        errs = run(with_model(pricing=[{**self.P, "unit": "usd_per_image"}], pricing_verified="2026-09-25"))
+        self.assertTrue(any("스키마" in e for e in errs))
+
+    def test_pricing_negative(self):
+        errs = run(with_model(pricing=[{**self.P, "input": -1}], pricing_verified="2026-09-25"))
+        self.assertTrue(any("스키마" in e for e in errs))
+
+    def test_pricing_http_source(self):
+        errs = run(with_model(pricing=[{**self.P, "source": "http://example.com"}], pricing_verified="2026-09-25"))
+        self.assertTrue(any("스키마" in e for e in errs))
+
+    def test_pricing_order(self):
+        later = {**self.P, "from": "2027-01-01"}
+        errs = run(with_model(pricing=[later, self.P], pricing_verified="2026-09-25"))
+        self.assertTrue(any("pricing" in e and "오름차순" in e for e in errs))
+
+    def test_pricing_same_day_twice(self):
+        errs = run(with_model(pricing=[self.P, {**self.P, "input": 2}], pricing_verified="2026-09-25"))
+        self.assertTrue(any("pricing" in e and "오름차순" in e for e in errs))
+
+    def test_pricing_impossible_date(self):
+        errs = run(with_model(pricing=[{**self.P, "from": "2026-02-31"}], pricing_verified="2026-09-25"))
+        self.assertTrue(any("실제 날짜" in e for e in errs))
+
+    def test_chat_pricing_needs_output(self):
+        p = {k: v for k, v in self.P.items() if k != "output"}
+        errs = run(with_model(pricing=[p], pricing_verified="2026-09-25"))
+        self.assertTrue(any("output" in e for e in errs))
+
+    def test_pricing_needs_verified(self):
+        errs = run(with_model(pricing=[self.P]))
+        self.assertTrue(any("pricing_verified" in e for e in errs))
+
+    def test_alias_with_pricing(self):
+        errs = run(with_model(id="claude-x-alias", alias_of="claude-sonnet-5",
+                              pricing=[self.P], pricing_verified="2026-09-25"))
+        self.assertTrue(any("별칭" in e and "pricing" in e for e in errs))
+
+    def test_alias_of_alias(self):
+        errs = run(with_model(id="claude-x-alias", alias_of="claude-haiku-4-5-20251001"))
+        self.assertTrue(any("별칭" in e and "별칭을 가리킴" in e for e in errs))
+
+    def test_alias_self(self):
+        errs = run(with_model(id="claude-x", alias_of="claude-x"))
+        self.assertTrue(any("별칭을 가리킴" in e for e in errs))
+
+    def test_alias_kind_mismatch(self):
+        data = with_model(id="claude-x-emb", kind="embedding", dimensions=8, alias_of="claude-sonnet-5")
+        for k in ("tier", "requires", "capabilities"):
+            data["models"][-1].pop(k, None)
+        self.assertTrue(any("kind" in e and "alias_of" in e for e in run(data)))
+
 
 if __name__ == "__main__":
     unittest.main()
