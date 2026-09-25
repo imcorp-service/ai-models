@@ -145,6 +145,42 @@ class ValidateTest(unittest.TestCase):
         errs = run(with_model(status="retired", retired_on="2026-01-01", replace_with="claude-sonnet-5"))
         self.assertFalse(any("단가" in e for e in errs))
 
+    def with_rec(self, rec):
+        data = copy.deepcopy(BASE)
+        data["recommended"] = rec
+        return data
+
+    def test_recommended_ok(self):
+        self.assertEqual(run(self.with_rec({"anthropic": {"balanced": "claude-sonnet-5"}})), [])
+
+    def test_recommended_unknown_tier(self):
+        errs = run(self.with_rec({"anthropic": {"cheap": "claude-haiku-4-5"}}))
+        self.assertTrue(any("스키마" in e for e in errs))
+
+    def test_recommended_unknown_provider(self):
+        errs = run(self.with_rec({"someai": {"fast": "claude-haiku-4-5"}}))
+        self.assertTrue(any("스키마" in e for e in errs))
+
+    def test_recommended_missing_id(self):
+        errs = run(self.with_rec({"anthropic": {"fast": "claude-nope"}}))
+        self.assertTrue(any("recommended" in e and "목록에 없는" in e for e in errs))
+
+    def test_recommended_wrong_provider(self):
+        errs = run(self.with_rec({"anthropic": {"balanced": "gpt-4.1"}}))
+        self.assertTrue(any("recommended" in e and "제공사" in e for e in errs))
+
+    def test_recommended_wrong_tier(self):
+        errs = run(self.with_rec({"anthropic": {"fast": "claude-sonnet-5"}}))
+        self.assertTrue(any("recommended" in e and "tier" in e for e in errs))
+
+    def test_recommended_not_active(self):
+        errs = run(self.with_rec({"gemini": {"best": "gemini-3.1-pro-preview"}}))
+        self.assertTrue(any("recommended" in e and "active" in e for e in errs))
+
+    def test_recommended_alias(self):
+        errs = run(self.with_rec({"anthropic": {"fast": "claude-haiku-4-5-20251001"}}))
+        self.assertTrue(any("recommended" in e and "별칭" in e for e in errs))
+
 
 if __name__ == "__main__":
     unittest.main()

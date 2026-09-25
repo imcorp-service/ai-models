@@ -90,6 +90,20 @@ def rule_errors(data: dict) -> list[str]:
         if (m["status"] != "retired" and m.get("alias_of") is None
                 and m["kind"] in ("chat", "embedding") and pricing is None and mid not in PRICING_EXEMPT):
             errors.append(f"{mid}: 은퇴하지 않은 모델은 단가(pricing)가 필요하다")
+    for prov, tiers in (data.get("recommended") or {}).items():
+        for tier, rid in tiers.items():
+            t = by_id.get(rid)
+            where = f"recommended.{prov}.{tier}"
+            if t is None:
+                errors.append(f"{where} 가 목록에 없는 id 를 가리킴: {rid}")
+            elif t["provider"] != prov:
+                errors.append(f"{where} 가 다른 제공사 모델을 가리킴: {rid}")
+            elif "alias_of" in t:
+                errors.append(f"{where} 가 별칭을 가리킴: {rid}")
+            elif t["kind"] != "chat" or t.get("tier") != tier:
+                errors.append(f"{where} 의 kind·tier 가 맞지 않음: {rid} ({t['kind']}/{t.get('tier')})")
+            elif t["status"] != "active":
+                errors.append(f"{where} 는 active 모델만 가능: {rid} ({t['status']})")
     return errors
 
 
