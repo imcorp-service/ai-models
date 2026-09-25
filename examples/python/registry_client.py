@@ -9,6 +9,7 @@ import os
 import threading
 import time
 import urllib.request
+from datetime import datetime, timedelta, timezone
 
 REGISTRY_URL = os.environ.get(
     "AI_MODELS_URL", "https://raw.githubusercontent.com/imcorp-service/ai-models/main/ai-models.json")
@@ -33,6 +34,24 @@ _cache = {"models": None, "at": 0.0}
 
 MAX_BYTES = 1_000_000
 _REQUIRED_STR = ("id", "provider", "label", "kind", "status")
+KST = timezone(timedelta(hours=9))
+PRICE_UNIT = "usd_per_mtok"
+
+
+def today_kst() -> str:
+    """단가 적용 기준일(KST 날짜, YYYY-MM-DD)."""
+    return datetime.now(KST).date().isoformat()
+
+
+def parse_registry(data) -> dict:
+    """목록 문서 형식 검사. 모르는 필드는 무시한다. 형식이 틀리면 ValueError."""
+    models = data.get("models") if isinstance(data, dict) else None
+    if (not isinstance(models, list) or data.get("schema_version") != 1
+            or not all(isinstance(m, dict) and all(isinstance(m.get(k), str) for k in _REQUIRED_STR)
+                       for m in models)):
+        raise ValueError("unsupported registry format")
+    rec = data.get("recommended")
+    return {"models": models, "recommended": rec if isinstance(rec, dict) else {}}
 
 
 def _fetch():
@@ -46,47 +65,95 @@ def _fetch():
             body += chunk
             if time.monotonic() > deadline or len(body) > MAX_BYTES:
                 raise TimeoutError("registry fetch too slow or too large")
-    data = json.loads(body.decode("utf-8"))
-    models = data.get("models") if isinstance(data, dict) else None
-    if (not isinstance(models, list) or data.get("schema_version") != 1
-            or not all(isinstance(m, dict) and all(isinstance(m.get(k), str) for k in _REQUIRED_STR)
-                       for m in models)):
-        raise ValueError("unsupported registry format")
-    return models
+    return parse_registry(json.loads(body.decode("utf-8")))
 
 
-def load_models():
-    """(models, source) 반환. source 는 'registry' | 'cache' | 'fallback'."""
+_FALLBACK_REGISTRY = {"models": FALLBACK_MODELS, "recommended": {}}
+
+
+def load_registry():
+    """(registry, source). registry = {"models": [...], "recommended": {...}}. source: 'registry'|'cache'|'fallback'."""
     with _lock:
         if _cache["models"] is not None and time.time() - _cache["at"] < TTL_SECONDS:
             return _cache["models"], "cache"
     try:  # 조회 중에는 잠금을 잡지 않는다 — 느린 조회가 다른 요청의 캐시 읽기를 막지 않게
-        models = _fetch()
+        reg = _fetch()
     except Exception:  # 네트워크·형식 오류 모두 화면을 막지 않는다
         with _lock:
             if _cache["models"] is not None:
                 return _cache["models"], "cache"
-        return FALLBACK_MODELS, "fallback"
+        return _FALLBACK_REGISTRY, "fallback"
     with _lock:
-        _cache["models"], _cache["at"] = models, time.time()
-    return models, "registry"
+        _cache["models"], _cache["at"] = reg, time.time()
+    return reg, "registry"
+
+
+def load_models():
+    """(models, source) 반환. source 는 'registry' | 'cache' | 'fallback'."""
+    reg, source = load_registry()
+    return reg["models"], source
+
+
+def build_options(models, allowed_providers, supports, required_caps=("text",)):
+    """선택 상자용 목록. 각 항목에 selectable·reason 을 붙인다."""
+    options = []
+    for m in models:
+        if (m.get("kind") != "chat" or m.get("provider") not in allowed_providers
+                or m.get("status") == "retired" or m.get("alias_of")
+                or not set(required_caps) <= set(m.get("capabilities") or [])):
+            continue
+        missing = set(m.get("requires") or []) - set(supports)
+        options.append({**m, "selectable": not missing, "reason": "코드 업데이트 필요" if missing else None})
+    options.sort(key=lambda m: (_STATUS_ORDER.get(m["status"], 9), _TIER_ORDER.get(m.get("tier"), 9), m["label"]))
+    return options
 
 
 def model_options(required_caps=("text",)):
-    """선택 상자용 목록. 각 항목에 selectable·reason 을 붙여 돌려준다."""
+    """선택 상자용 목록과 출처."""
     models, source = load_models()
-    options = []
-    for m in models:
-        if (m.get("kind") != "chat" or m.get("provider") not in ALLOWED_PROVIDERS
-                or m.get("status") == "retired" or m.get("alias_of")
-                or not set(required_caps) <= set(m.get("capabilities", []))):
+    return build_options(models, ALLOWED_PROVIDERS, SUPPORTS, required_caps), source
+
+
+def _valid_price(v):
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and 0 <= v <= 1000
+
+
+def price_for(models, model_id, on_date):
+    """on_date(YYYY-MM-DD, KST) 에 적용되는 표준 단가 {'input','output'}(USD/1M 토큰). 모르면 None.
+
+    표준 조건(배치·캐시·장문맥 할증 없음) 단가다 — 예산 차단에 쓰려면 docs/INTEGRATION.md §6 을 따른다.
+    None 이면 서비스는 내장 단가표 → 비싼 기본값 순으로 쓴다.
+    """
+    by_id = {m.get("id"): m for m in models}
+    m = by_id.get(model_id)
+    if m is not None and m.get("alias_of"):
+        m = by_id.get(m["alias_of"])
+        if m is not None and m.get("alias_of"):
+            m = None  # 다단계 별칭은 목록 규칙 위반 — 믿지 않는다
+    if m is None:
+        return None
+    best = None
+    for p in m.get("pricing") or []:
+        if not isinstance(p, dict) or p.get("unit") != PRICE_UNIT or not isinstance(p.get("from"), str):
             continue
-        missing = set(m.get("requires", [])) - SUPPORTS
-        options.append({**m, "selectable": not missing,
-                        "reason": "코드 업데이트 필요" if missing else None})
-    options.sort(key=lambda m: (_STATUS_ORDER.get(m["status"], 9),
-                                _TIER_ORDER.get(m.get("tier"), 9), m["label"]))
-    return options, source
+        if p["from"] <= on_date and (best is None or p["from"] > best["from"]):
+            best = p
+    if best is None or not _valid_price(best.get("input")):
+        return None
+    out = best.get("output")
+    if out is not None and not _valid_price(out):
+        return None
+    return {"input": best["input"], "output": out}
+
+
+def pick_default(models, recommended, provider, options, tier="balanced", builtin=None):
+    """저장값이 없을 때의 기본 모델. 권장값 → 같은 tier 의 active(목록 순서) → builtin, 모두 같은 검사. 없으면 None."""
+    usable = {o["id"] for o in options if o["selectable"] and o["status"] in ("active", "legacy")}
+    rec = ((recommended or {}).get(provider) or {}).get(tier)
+    candidates = [rec] + [m.get("id") for m in models
+                          if m.get("provider") == provider and m.get("tier") == tier
+                          and m.get("status") == "active" and not m.get("alias_of")] + [builtin]
+    return next((c for c in candidates if c in usable), None)
 
 
 def describe(model_id):
@@ -102,3 +169,6 @@ if __name__ == "__main__":
         print(f"{'  ' if o['selectable'] else 'x '}{o['id']:<28} {o['status']:<10} {o.get('reason') or ''}")
     cur = describe("claude-sonnet-4-20250514")
     print("current:", cur and f"{cur['status']} → {cur.get('replace_with')}")
+    reg, _ = load_registry()
+    print("default:", pick_default(reg["models"], reg["recommended"], "anthropic", opts, builtin="claude-sonnet-5"))
+    print("price claude-sonnet-5:", price_for(reg["models"], "claude-sonnet-5", today_kst()))
