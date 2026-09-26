@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-09-25",
+  "updated": "2026-10-01",
   "recommended": {
     "anthropic": {"fast": "claude-haiku-4-5", "balanced": "claude-sonnet-5", "best": "claude-opus-5-5"},
     "openai": {"fast": "gpt-5-nano", "balanced": "gpt-5-mini", "best": "gpt-5.2"},
@@ -104,9 +104,9 @@
      "capabilities": ["text", "vision", "tools"], "requires": [],
      "pricing": [{"from": "2026-09-25", "unit": "usd_per_mtok", "input": 0.15, "output": 0.6, "source": "https://developers.openai.com/api/docs/pricing"}], "pricing_verified": "2026-09-25"},
 
-    {"id": "gpt-5.4", "provider": "openai", "label": "GPT-5.4", "kind": "chat", "tier": "best", "status": "deprecated",
+    {"id": "gpt-5.4", "provider": "openai", "label": "GPT-5.4", "kind": "chat", "tier": "best", "status": "retired",
      "capabilities": ["text", "vision", "tools"], "requires": ["no_sampling_params", "max_completion_tokens"],
-     "retire_on": "2026-10-01", "replace_with": "gpt-5.2",
+     "retired_on": "2026-10-01", "replace_with": "gpt-5.2",
      "pricing": [{"from": "2026-09-25", "unit": "usd_per_mtok", "input": 2.5, "output": 15, "source": "https://developers.openai.com/api/docs/pricing"}], "pricing_verified": "2026-09-25"},
     {"id": "gpt-4.1-nano", "provider": "openai", "label": "GPT-4.1 nano", "kind": "chat", "tier": "fast", "status": "deprecated",
      "capabilities": ["text", "vision", "tools"], "requires": [],
