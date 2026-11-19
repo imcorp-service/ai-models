@@ -62,8 +62,8 @@ public class RegistryClient {
     private static final Set<String> ALLOWED_PROVIDERS = Set.of("anthropic");
     private static final Set<String> SUPPORTS = Set.of("no_sampling_params", "no_thinking_budget"); // 코드가 지키는 요청 형식 플래그 (README 참고)
     private static final String FALLBACK_JSON = """
-            [{"id":"claude-sonnet-5","provider":"anthropic","label":"Claude Sonnet 5","kind":"chat",
-              "tier":"balanced","status":"active","capabilities":["text","vision","tools"],
+            [{"id":"claude-haiku-5-5","provider":"anthropic","label":"Claude Haiku 5.5","kind":"chat",
+              "tier":"fast","status":"active","capabilities":["text","vision","tools"],
               "requires":["no_sampling_params","no_thinking_budget"]}]""";
     // ────────────────────────────────────────────────────────────
 
@@ -197,6 +197,6 @@ public class RegistryClient {
         for (Option o : result.options())
             System.out.println((o.selectable() ? "  " : "x ") + o.id() + " " + (o.reason() == null ? "" : o.reason()));
         Registry reg = new RegistryClient().loadRegistry().registry();
-        System.out.println("price claude-sonnet-5: " + priceFor(reg.models(), "claude-sonnet-5", todayKst()));
+        System.out.println("price claude-haiku-5-5: " + priceFor(reg.models(), "claude-haiku-5-5", todayKst()));
     }
 }

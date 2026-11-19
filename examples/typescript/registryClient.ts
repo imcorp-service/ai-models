@@ -23,8 +23,9 @@ const TIMEOUT_MS = 3_000;
 const ALLOWED_PROVIDERS = new Set(["anthropic"]);
 const SUPPORTS = new Set(["no_sampling_params", "no_thinking_budget"]); // 코드가 지키는 요청 형식 플래그 (README 참고)
 const FALLBACK_MODELS: Model[] = [
-  { id: "claude-haiku-4-5", provider: "anthropic", label: "Claude Haiku 4.5", kind: "chat",
-    tier: "fast", status: "active", capabilities: ["text", "vision", "tools"], requires: [] },
+  { id: "claude-haiku-5-5", provider: "anthropic", label: "Claude Haiku 5.5", kind: "chat",
+    tier: "fast", status: "active", capabilities: ["text", "vision", "tools"],
+    requires: ["no_sampling_params", "no_thinking_budget"] },
 ];
 // ────────────────────────────────────────────────────────────────
 

@@ -4,8 +4,8 @@
 
 ## 1. 작업 순서
 
-1. **호출 코드부터 읽습니다.** 모델을 부르는 함수가 실제로 보내는 파라미터(`temperature`, `max_tokens`/`max_completion_tokens`, `thinking`, `tool_choice`)와 응답을 읽는 방식을 확인합니다.
-2. **`SUPPORTS`를 선언합니다.** 1번에서 확인한 요청 형식 그대로 적습니다. 파라미터를 아예 보내지 않으면 그 플래그를 지원하는 것입니다. 호출 코드를 바꾸면 `SUPPORTS`도 함께 고칩니다.
+1. **호출 코드부터 읽습니다.** 모델을 부르는 함수가 실제로 보내는 파라미터(`temperature`, `max_tokens`/`max_completion_tokens`, `thinking`, `tool_choice`, 도구 호출 API(Chat Completions/Responses))와 응답을 읽는 방식을 확인합니다.
+2. **`SUPPORTS`를 선언합니다.** 1번에서 확인한 요청 형식 그대로 적습니다. Anthropic SDK 가 API 버전 `2026-10-21` 이상을 보내면 `temperature` · `top_p` · `top_k`는 값과 무관하게 거부되므로, 이 파라미터를 아예 보내지 않을 때만 `no_sampling_params`를 선언합니다. 파라미터를 아예 보내지 않으면 그 플래그를 지원하는 것입니다. 호출 코드를 바꾸면 `SUPPORTS`도 함께 고칩니다.
 3. **조회 클라이언트를 복사합니다.** [`examples/`](../examples)의 언어별 예제를 서비스에 복사하고, 복사한 뒤에는 서비스 코드로 관리합니다.
 4. **검증 기능을 붙입니다.** 실제 호출 함수로 짧은 요청을 1회 보냅니다(§3).
 5. **저장 규칙을 넣습니다**(§4).
