@@ -1,0 +1,15 @@
+# 목록(ai-models.json)에 일부러 넣지 않은 모델 ID — 새 모델 감지(agent-rules tools/ai-update.sh)가 다시 알리지 않게 한다.
+# 형식: 한 줄에 ID 하나, 뒤에 "# 사유". 빈 줄과 # 로 시작하는 줄은 무시.
+# 넣는 기준은 docs/UPDATING.md §3 "넣지 않는 것". 나중에 목록에 넣게 되면 이 파일에서 지운다.
+
+# Anthropic — 검증된 조직 전용
+claude-mythos-5        # 검증된 조직 전용 (2026-11-19)
+claude-mythos-5-1      # 검증된 조직 전용 (2026-11-19)
+claude-mythos-5-2      # 검증된 조직 전용 (2026-11-19)
+
+# OpenAI — 목록에 넣을 때 이미 구세대
+gpt-6-astra            # gpt-6.2-astra 이전 세대 (2026-11-19)
+gpt-6-sol              # gpt-6.2-sol 이전 세대 (2026-11-19)
+gpt-5.6-sol            # GPT-6 이전 세대 (2026-11-19)
+gpt-5.6-terra          # GPT-6 이전 세대 (2026-11-19)
+gpt-5.6-luna           # GPT-6 이전 세대 (2026-11-19)
