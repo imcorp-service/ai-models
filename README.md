@@ -62,7 +62,7 @@ AI 모델 목록 공용 저장소입니다. 서비스 관리 화면이 이 목�
 
 새 서비스에 적용할 때의 체크리스트와 실제 적용에서 드러난 함정은 [`docs/INTEGRATION.md`](docs/INTEGRATION.md)에 있습니다. 목록이 어떻게 바뀌어도 서비스가 깨지지 않도록 지키는 약속은 [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md)에 있습니다. 예제가 지켜야 할 동작은 [`conformance/cases.json`](conformance/cases.json)에 있고, 서비스는 이 파일을 함께 복사해 테스트합니다.
 
-매주 월요일 정기 점검(`.github/workflows/audit.yml`)이 은퇴일 경과·은퇴 임박·단가 재확인(90일)·권장값 상태를 확인해 이슈로 알립니다.
+매주 월요일 정기 점검(`.github/workflows/audit.yml`)이 은퇴일 경과·은퇴 임박·단가 재확인(90일)·권장값 상태·월간 갱신 시점(`updated` 후 30일)을 확인해 이슈로 알립니다. 새 모델 출시는 자동으로 감지되지 않으므로 월 1회 [`docs/UPDATING.md`](docs/UPDATING.md) 절차로 공식 문서와 대조합니다.
 
 1. **서버에서 조회합니다.** 브라우저가 직접 가져가지 않습니다. 타임아웃 3초, 결과는 1시간 캐시합니다.
 2. **실패해도 화면을 막지 않습니다.** 조회 실패 → 마지막 캐시 → 서비스에 내장한 최소 목록 순서로 씁니다. 어느 출처를 썼는지(`registry` · `cache` · `fallback`)를 함께 표시합니다. 조회 주소는 환경변수 `AI_MODELS_URL`로 바꿀 수 있습니다(폐쇄망 등).
@@ -75,9 +75,11 @@ AI 모델 목록 공용 저장소입니다. 서비스 관리 화면이 이 목�
 
 ## 목록을 고치는 법
 
+정기 갱신(월 1회)의 출처·대조 항목·판단 기준·에이전트 지시문은 [`docs/UPDATING.md`](docs/UPDATING.md)에 있습니다.
+
 1. `ai-models.json`을 수정하는 PR을 엽니다. 새 모델 추가, `status` · 날짜 · `replace_with` 갱신, 필요한 `requires` 플래그를 적습니다.
    - 단가를 바꿀 때는 공식 가격표 주소(`source`)를 반드시 달고 `pricing_verified` 를 대조한 날로 고칩니다.
-   - 예정된 가격 변경은 기존 항목을 고치지 말고 새 `from` 항목을 추가합니다.
+   - 예정된 가격 변경은 기존 항목을 고치지 말고 새 `from` 항목을 추가합니다. 아직 발효 전인 예정 항목의 정정은 예외입니다([`docs/UPDATING.md`](docs/UPDATING.md) §2).
    - 제공사를 추가할 때는 `schema.json` 의 provider enum 두 곳(모델 · `recommended`)을 함께 고칩니다.
 2. CI(`scripts/validate.py`)가 스키마와 규칙을 검사합니다: ID 중복, 존재하지 않는 형태의 ID, `replace_with` · `alias_of`가 목록에 있고 같은 제공사인지, 은퇴 모델에 날짜와 교체 대상이 있는지, 단가 누락·순서·범위, 별칭 규칙, 권장값이 같은 제공사·등급의 `active` 모델인지. 적합성 케이스는 Python·Java 예제로 모두 통과해야 합니다.
 3. 리뷰 후 `main`에 머지합니다.
@@ -101,8 +103,8 @@ java -cp "out:lib/*" Conformance conformance/cases.json     # Windows 는 "out;l
 
 ## 출처
 
-목록은 각 제공사의 공식 문서를 기준으로 사람이 갱신합니다.
+목록은 각 제공사의 공식 문서를 기준으로 사람이 갱신합니다. 단가·모델별 페이지를 포함한 전체 출처 표는 [`docs/UPDATING.md`](docs/UPDATING.md) §1에 있습니다.
 
 - Anthropic: [Models overview](https://platform.claude.com/docs/en/about-claude/models/overview) · [Model deprecations](https://platform.claude.com/docs/en/about-claude/model-deprecations)
 - OpenAI: [Deprecations](https://developers.openai.com/api/docs/deprecations)
-- Google: [Gemini models](https://ai.google.dev/gemini-api/docs/models) · [Gemini deprecations](https://ai.google.dev/gemini-api/docs/deprecations)
+- Google: [Gemini models](https://aistudio.google.com/docs/models) · [Gemini deprecations](https://aistudio.google.com/docs/deprecations)

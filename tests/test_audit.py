@@ -38,6 +38,13 @@ class AuditTest(unittest.TestCase):
     def test_pricing_stale(self):
         self.assertTrue(any("재확인" in f for f in audit(model(pricing_verified="2026-06-01"), TODAY)))
 
+    def test_monthly_refresh_due(self):
+        data = model()
+        data["updated"] = "2026-08-26"  # TODAY 기준 정확히 30일 전
+        self.assertTrue(any("월간 갱신" in f for f in audit(data, TODAY)))
+        data["updated"] = "2026-08-27"
+        self.assertFalse(any("월간 갱신" in f for f in audit(data, TODAY)))
+
     def test_no_price_today(self):
         future = [{"from": "2026-12-01", "unit": "usd_per_mtok", "input": 1, "output": 5, "source": "https://x"}]
         self.assertTrue(any("오늘 적용할 단가" in f for f in audit(model(pricing=future), TODAY)))

@@ -146,6 +146,12 @@ class ValidateTest(unittest.TestCase):
         errs = run(with_model())   # with_model 기본값은 단가 없는 active chat
         self.assertTrue(any("claude-x" in e and "단가" in e for e in errs))
 
+    def test_retired_model_may_keep_pricing(self):
+        # 과거 사용량 재계산(INTEGRATION §6)을 위해 은퇴 후에도 단가를 남길 수 있다
+        errs = run(with_model(status="retired", retired_on="2026-01-01", replace_with="claude-sonnet-5",
+                              pricing=[self.P], pricing_verified="2026-09-25"))
+        self.assertEqual(errs, [])
+
     def test_retired_model_needs_no_pricing(self):
         errs = run(with_model(status="retired", retired_on="2026-01-01", replace_with="claude-sonnet-5"))
         self.assertFalse(any("단가" in e for e in errs))
