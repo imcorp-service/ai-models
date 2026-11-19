@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 STALE_DAYS = 90
 SOON_DAYS = 30
+REFRESH_DAYS = 30  # 새 모델 출시는 자동 감지가 안 되므로 월 1회 사람이 공식 문서를 대조한다(docs/UPDATING.md)
 
 
 def audit(data: dict, today: date) -> list[str]:
@@ -17,6 +18,9 @@ def audit(data: dict, today: date) -> list[str]:
     soon = (today + timedelta(days=SOON_DAYS)).isoformat()
     stale = (today - timedelta(days=STALE_DAYS)).isoformat()
     by_id = {m["id"]: m for m in data["models"]}
+    upd = data.get("updated")
+    if upd and upd <= (today - timedelta(days=REFRESH_DAYS)).isoformat():
+        found.append(f"월간 갱신 시점: 목록 갱신일 updated={upd} 이후 {REFRESH_DAYS}일 이상 지남 — 새 모델·지원 종료를 docs/UPDATING.md 절차로 대조")
     for m in data["models"]:
         mid, st, ro = m["id"], m["status"], m.get("retire_on")
         if st != "retired" and ro and ro < t:
