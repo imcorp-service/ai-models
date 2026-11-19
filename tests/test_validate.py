@@ -151,7 +151,7 @@ class ValidateTest(unittest.TestCase):
         return data
 
     def test_recommended_ok(self):
-        self.assertEqual(run(self.with_rec({"anthropic": {"balanced": "claude-sonnet-5"}})), [])
+        self.assertEqual(run(self.with_rec({"anthropic": {"balanced": "claude-sonnet-5-5"}})), [])
 
     def test_recommended_unknown_tier(self):
         errs = run(self.with_rec({"anthropic": {"cheap": "claude-haiku-4-5"}}))

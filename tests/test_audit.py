@@ -24,8 +24,8 @@ def model(**f):
 
 class AuditTest(unittest.TestCase):
     def test_current_file_on_first_day(self):
-        # 2026-09-25 기준 실제로 30일 안에 은퇴하는 deprecated 모델만 나와야 한다(단가·권장값 문제는 없음).
-        found = audit(copy.deepcopy(BASE), TODAY)
+        # 목록 갱신일(updated) 기준 실제로 30일 안에 은퇴하는 deprecated 모델만 나와야 한다(단가·권장값 문제는 없음).
+        found = audit(copy.deepcopy(BASE), date.fromisoformat(BASE["updated"]))
         self.assertTrue(found)
         self.assertTrue(all(f.startswith("은퇴 임박") for f in found), found)
 
