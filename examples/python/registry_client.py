@@ -20,8 +20,8 @@ TIMEOUT_SECONDS = 3
 ALLOWED_PROVIDERS = {"anthropic"}          # 호출 코드를 가진 제공사만
 SUPPORTS = {"no_sampling_params", "no_thinking_budget"}  # 코드가 지키는 요청 형식 플래그 (README 참고)
 FALLBACK_MODELS = [                        # 목록을 못 받을 때 보여줄 최소 목록
-    {"id": "claude-sonnet-5", "provider": "anthropic", "label": "Claude Sonnet 5", "kind": "chat",
-     "tier": "balanced", "status": "active", "capabilities": ["text", "vision", "tools"],
+    {"id": "claude-haiku-5-5", "provider": "anthropic", "label": "Claude Haiku 5.5", "kind": "chat",
+     "tier": "fast", "status": "active", "capabilities": ["text", "vision", "tools"],
      "requires": ["no_sampling_params", "no_thinking_budget"]},
 ]
 # ────────────────────────────────────────────────────────────────
@@ -170,5 +170,5 @@ if __name__ == "__main__":
     cur = describe("claude-sonnet-4-20250514")
     print("current:", cur and f"{cur['status']} → {cur.get('replace_with')}")
     reg, _ = load_registry()
-    print("default:", pick_default(reg["models"], reg["recommended"], "anthropic", opts, builtin="claude-sonnet-5"))
-    print("price claude-sonnet-5:", price_for(reg["models"], "claude-sonnet-5", today_kst()))
+    print("default:", pick_default(reg["models"], reg["recommended"], "anthropic", opts, builtin="claude-haiku-5-5"))
+    print("price claude-haiku-5-5:", price_for(reg["models"], "claude-haiku-5-5", today_kst()))

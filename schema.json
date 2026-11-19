@@ -47,7 +47,7 @@
         "status": {"enum": ["active", "legacy", "deprecated", "preview", "retired"]},
         "capabilities": {"type": "array", "uniqueItems": true, "items": {"enum": ["text", "vision", "tools"]}},
         "requires": {"type": "array", "uniqueItems": true,
-                     "items": {"enum": ["no_sampling_params", "no_thinking_budget", "no_forced_tool_choice", "thinking_always_on", "max_completion_tokens"]}},
+                     "items": {"enum": ["no_sampling_params", "no_thinking_budget", "no_forced_tool_choice", "thinking_always_on", "max_completion_tokens", "tools_via_responses_api"]}},
         "retire_not_before": {"$ref": "#/$defs/date"},
         "retire_on": {"$ref": "#/$defs/date"},
         "retired_on": {"$ref": "#/$defs/date"},

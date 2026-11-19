@@ -47,11 +47,12 @@ AI 모델 목록 공용 저장소입니다. 서비스 관리 화면이 이 목�
 
 | 플래그 | 뜻 |
 |---|---|
-| `no_sampling_params` | `temperature` · `top_p` · `top_k`를 기본값 외로 보내면 오류(400) |
+| `no_sampling_params` | `temperature` · `top_p` · `top_k`를 기본값 외로 보내면 오류(400). Anthropic API 버전 `2026-10-21` 이상은 값과 무관하게 오류이므로, 그 버전을 쓰는 코드는 이 파라미터를 아예 보내지 않을 때만 지원으로 선언 |
 | `no_thinking_budget` | `thinking.budget_tokens`를 보내면 오류 |
 | `no_forced_tool_choice` | `tool_choice`의 `any` · `tool` 강제 지정 불가 |
 | `thinking_always_on` | `thinking: {type: "disabled"}`를 보내면 오류 |
 | `max_completion_tokens` | `max_tokens` 대신 `max_completion_tokens`를 써야 함 |
+| `tools_via_responses_api` | 도구(함수) 호출은 Responses API로만 가능(Chat Completions에 `tools`를 보내면 안 됨) |
 
 예: 어떤 서비스가 `temperature: 0.7`을 보낸다면 `no_sampling_params`를 지원하지 않으므로, 이 플래그가 필요한 최신 모델은 "코드 업데이트 필요"로 표시되고 선택할 수 없습니다.
 

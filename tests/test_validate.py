@@ -84,6 +84,11 @@ class ValidateTest(unittest.TestCase):
     def test_pricing_ok(self):
         self.assertEqual(run(with_model(pricing=[self.P], pricing_verified="2026-09-25")), [])
 
+    def test_tools_via_responses_api_flag(self):
+        self.assertEqual(run(with_model(id="gpt-x", provider="openai", capabilities=["text", "tools"],
+                                        requires=["tools_via_responses_api"], pricing=[self.P],
+                                        pricing_verified="2026-09-25")), [])
+
     def test_pricing_unknown_unit(self):
         errs = run(with_model(pricing=[{**self.P, "unit": "usd_per_image"}], pricing_verified="2026-09-25"))
         self.assertTrue(any("스키마" in e for e in errs))
